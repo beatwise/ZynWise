@@ -1,0 +1,5 @@
+IMG_MainView         RCDATA "img/MainView.png"
+IMG_Knob             RCDATA "img/Knob.png"
+IMG_LongLabel        RCDATA "img/LongLabel.png"
+IMG_LoadButton       RCDATA "img/LoadButton.png"
+IMG_optPresetSelector RCDATA "img/optPresetSelector.png"
