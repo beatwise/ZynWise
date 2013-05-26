@@ -33,8 +33,6 @@ extern void Terminate();
 ZynWise::ZynWise(audioMasterCallback audioMaster) 
 	: AudioEffectX(audioMaster, PROGRAMS_COUNT, kParamsCount)
 {
-	Setup();
-
     if (audioMaster) 
 	{
 		isSynth(true);
@@ -90,7 +88,7 @@ void ZynWise::setProgram(VstInt32 program)
 	{
 		// set the parameters to default values
 		for (int i = 0; i < kParamsCount; i++)			
-			_programs[program][i].Init();
+			_zasf.Param(program, i)->Init();
 
 		curProgram = program;	
 
@@ -120,12 +118,10 @@ void ZynWise::processReplacing(float **inputs, float **outputs, VstInt32 frames)
 
     float *outl = outputs[0];
     float *outr = outputs[1];
-    //pthread_mutex_lock(&vmaster->mutex);
-	EnterCriticalSection(&_zasf.vmaster->mutex);
 
+	EnterCriticalSection(&_zasf.vmaster->mutex);
     _zasf.vmaster->GetAudioOutSamples(frames, 
 		(int) getSampleRate(), outl, outr);
-    //pthread_mutex_unlock(&vmaster->mutex);
 	LeaveCriticalSection(&_zasf.vmaster->mutex);
 }
 
@@ -134,19 +130,19 @@ void ZynWise::processReplacing(float **inputs, float **outputs, VstInt32 frames)
 
 void ZynWise::getParameterLabel(VstInt32 index, char* label)
 {
-	strncpy(label, _programs[curProgram][index].GetLabel().c_str(), 
+	strncpy(label, _zasf.Param(curProgram, index)->GetLabel().c_str(), 
 		kVstMaxParamStrLen);
 }
 
 void ZynWise::getParameterDisplay(VstInt32 index, char* text)
 {
 	_snprintf(text, kVstMaxParamStrLen - 1, "%f", 
-		_programs[curProgram][index].GetValue());	
+		_zasf.Param(curProgram, index)->GetValue());	
 }
 
 void ZynWise::getParameterName(VstInt32 index, char* text)
 {
-	strncpy(text, _programs[curProgram][index].GetName().c_str(), 
+	strncpy(text, _zasf.Param(curProgram, index)->GetName().c_str(), 
 		kVstMaxParamStrLen);
 }
 
@@ -157,23 +153,23 @@ bool ZynWise::getParameterProperties(VstInt32 index, VstParameterProperties* p)
 
 	p->flags = kVstParameterSupportsDisplayIndex;
 	p->displayIndex = index;	
-	p->minInteger = (VstInt32)_programs[curProgram][index].GetMin();
-	p->maxInteger = (VstInt32)_programs[curProgram][index].GetMax();
+	p->minInteger = (VstInt32)_zasf.Param(curProgram, index)->GetMin();
+	p->maxInteger = (VstInt32)_zasf.Param(curProgram, index)->GetMax();
 
-	if (_programs[curProgram][index].GetType() == CTYPE_DOUBLE)
+	if (_zasf.Param(curProgram, index)->GetType() == CTYPE_DOUBLE)
 	{
 		p->flags |= kVstParameterUsesFloatStep;
 		p->stepFloat = 1;
 		p->largeStepFloat = 1;
 	}
-	else if (_programs[curProgram][index].GetType() == CTYPE_BOOL)
+	else if (_zasf.Param(curProgram, index)->GetType() == CTYPE_BOOL)
 	{
 		p->flags |= (kVstParameterIsSwitch 
 			| kVstParameterUsesIntStep);
 		p->stepInteger = 1;
 		p->largeStepInteger = 1;
 	}
-	else if (_programs[curProgram][index].GetType() == CTYPE_INT)
+	else if (_zasf.Param(curProgram, index)->GetType() == CTYPE_INT)
 	{
 		p->flags |= kVstParameterUsesFloatStep;
 		p->stepFloat = 1;
@@ -194,7 +190,7 @@ void ZynWise::setParameter(VstInt32 index, float value)
 	if (index < 0 || index >= kParamsCount)
 		return;
 
-	_programs[curProgram][index].SetNormalValue(value);
+	_zasf.SetParam(curProgram, index, value);
 
 	if (_gui)
 	{
@@ -206,7 +202,7 @@ void ZynWise::setParameter(VstInt32 index, float value)
 float ZynWise::getParameter(VstInt32 index)
 {
 	if (0 <= index && index < kParamsCount)
-		return _programs[curProgram][index].GetNormalValue();
+		return _zasf.Param(curProgram, index)->GetNormalValue();
 	return 0.f;
 }
 
@@ -235,16 +231,16 @@ double ZynWise::GetParamValue(int index, bool normal)
 		return 0.f;
 
 	if (normal)
-		return _programs[curProgram][index].GetNormalValue();
+		return _zasf.Param(curProgram, index)->GetNormalValue();
 	
-	return _programs[curProgram][index].GetValue();
+	return _zasf.Param(curProgram, index)->GetValue();
 }
 
 // The gui asks for a parameter's info
 ParamInfo *ZynWise::GetParamInfo(int index)
 {
 	if (0 <= index && index < kParamsCount)
-		return &_programs[curProgram][index];
+		return _zasf.Param(curProgram, index);
 
 	return NULL;
 }
@@ -252,16 +248,6 @@ ParamInfo *ZynWise::GetParamInfo(int index)
 
 //----------------------------------------------------------
 // SETUP PROGRAMS & PARAMETERS VALUES
-
-void ZynWise::Setup()
-{
-	// params are inserted in the order in which they 	
-	// are defined in ids.h
-	int i = 0;
-
-	// Program 1
-	_programs[i].push_back(P0(64));
-}
 
 VstInt32 ZynWise::setChunk(void* data, VstInt32 byteSize, bool isPreset)						   
 {

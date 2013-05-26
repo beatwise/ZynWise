@@ -43,6 +43,21 @@ Zasf::Zasf()
 	SelectPreset(0);
 
 	pbuffer = NULL;
+
+	int i = 0;
+	_programs[i].push_back(P0(vmaster->Pvolume));
+	ParamSetter[i][knobVolume] = &Zasf::SetMasterVolume;
+}
+
+ParamInfo *Zasf::Param(int program, int index) 
+{
+	if (program < 0 || program > PROGRAMS_COUNT)
+		return NULL;
+
+	if (index < 0 || index > PARAMS_COUNT)
+		return NULL;
+
+	return &_programs[program][index];
 }
 
 Zasf::~Zasf() 
@@ -141,6 +156,22 @@ void Zasf::LoadProgram(char *mem, int size)
 
 	SelectPreset(preset_index);
 }
+
+void Zasf::SetParam(int program, int index, double value)
+{
+	_programs[program][index].SetNormalValue(value);
+	(this->*ParamSetter[program][index])(value, true);
+}
+
+
+void Zasf::SetMasterVolume(double value, bool normal)
+{
+	if (!normal)
+		vmaster->setPvolume(value);
+	else
+		vmaster->setPvolume((int)(value * 127 + 0.5f));
+}
+
 
 ///////////////////////////////////////////////////
 

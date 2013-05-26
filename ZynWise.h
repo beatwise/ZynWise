@@ -80,10 +80,7 @@ class ZynWise
 		void ParamChanged(int, double);
 		double GetParamValue(int index, bool normal = true);
 		ParamInfo *GetParamInfo(int index);
-
-		vector<ParamInfo> _programs[PROGRAMS_COUNT];
 		Gui *_gui;
-
 		Zasf _zasf;
 };
 

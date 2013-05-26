@@ -23,14 +23,24 @@
 #ifndef __ZASF_
 #define __ZASF_
 
+#include <vector>
 #include <string>
 using namespace std;
 
+#include "libs\wisegui.h"
+
+#include "config.h"
 #include "misc\master.h"
+
+class Zasf;
+typedef void (Zasf::*PARAMSETTER) (double, bool);
 
 class Zasf
 {
 public:
+	vector<ParamInfo> _programs[PROGRAMS_COUNT];
+	PARAMSETTER ParamSetter[PROGRAMS_COUNT][PARAMS_COUNT];
+
 	Master *vmaster;
 	char *pbuffer;
 
@@ -48,6 +58,10 @@ public:
 
 	void StoreProgram(char **mem, int &size);
 	void LoadProgram(char *mem, int size);
+
+	ParamInfo *Param(int program, int index);
+	void SetParam(int program, int index, double value);
+	void SetMasterVolume(double value, bool normal);
 };
 
 bool XizFileChooser(HWND hWnd, string& filename);

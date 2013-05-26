@@ -94,3 +94,11 @@ COMPILING:
     Run nmake.
     ZynWise.dll will be placed in the folder called "build".
 
+
+
+UPDATE #1
+---------
+
+ reworked "hosted parameters" management
+
+

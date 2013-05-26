@@ -68,7 +68,7 @@ void MainView::OnUpdate(int index, double value)
 	if (index == knobVolume)
 	{		
 		int vol = cl->GetParamValue(knobVolume, false);		
-		master->setPvolume(vol);
+		zasf->SetMasterVolume(vol, false);
 	}
 	else if (index == btnPreset1)
 	{
